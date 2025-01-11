@@ -1,4 +1,3 @@
-# project_IWV
 # Global Air Pollution Viewer
 
 This is a Shiny app that allows users to explore global air pollution data, including visualizations of air quality indices (AQI) and pollutants like NO2, Ozone, CO, and PM2.5. 
