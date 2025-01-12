@@ -503,5 +503,3 @@ shinyApp(ui, server)
 
 
 
-# Run the app
-
