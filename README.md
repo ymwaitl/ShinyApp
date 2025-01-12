@@ -20,13 +20,3 @@ This is a Shiny app that allows users to explore global air pollution data, incl
   - DT
   - data.table
 
-## Installation
-
-To run this app locally, clone this repository and run the following R code:
-
-```R
-# Install required packages
-install.packages(c("shiny", "shinythemes", "dplyr", "leaflet", "DT", "data.table"))
-
-# Run the app
-shiny::runApp("path_to_your_shiny_app")
