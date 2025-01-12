@@ -20,3 +20,8 @@ This is a Shiny app that allows users to explore global air pollution data, incl
   - DT
   - data.table
 
+## Data
+The raw data used in this project can be found at the following location:
+
+- [Data Source](https://www.kaggle.com/datasets/hasibalmuzdadid/global-air-pollution-dataset/data)
+
