@@ -12,11 +12,6 @@ data <- fread("gap.csv")
 colnames(data) <- gsub(" ", "_", colnames(data))
 head(data)
 
-if (!"Latitude" %in% names(data)) data$Latitude <- runif(nrow(data), -90, 90)
-if (!"Longitude" %in% names(data)) data$Longitude <- runif(nrow(data), -180, 180)
-
-
-
 ui <- fluidPage(theme = shinytheme("cerulean"),
                 
                 navbarPage(
@@ -203,6 +198,13 @@ server <- function(input, output, session) {
     selected_country <- input$select_country
     cities <- unique(data[data$Country == selected_country, City])
     
+#modifications#
+selected_city <- isolate(input$select_city)
+    if (!is.null(selected_city)) {
+      selected_city <- selected_city[selected_city %in% cities]  
+      # removing previous cities not in the new country
+    }
+##    
     if (length(cities) == 0) {
       updateSelectizeInput(session, "select_city", choices = NULL, server = TRUE)
       showModal(modalDialog("No information available for the selected country."))
