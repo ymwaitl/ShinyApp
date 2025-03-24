@@ -258,16 +258,7 @@ server <- function(input, output, session) {
       setView(lng = mean(country_data$Longitude, na.rm = TRUE), 
               lat = mean(country_data$Latitude, na.rm = TRUE), 
               zoom = 5)
-    
-    if (!is.null(input$select_city) && !("all" %in% input$select_city)) {
-      city_data <- data[data$City %in% input$select_city, ]
-      if (nrow(city_data) > 0) {
-        leafletProxy("map") %>% 
-          addCircleMarkers(data = city_data, 
-                           lng = ~Longitude, lat = ~Latitude, 
-                           color = "red", radius = 6, fillOpacity = 0.9)
-      }
-    }
+  
   })
   
   output$pollution_table <- renderDT({
