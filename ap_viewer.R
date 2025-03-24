@@ -10,6 +10,9 @@ data <- fread("gap.csv")
 colnames(data) <- gsub(" ", "_", colnames(data))
 head(data)
 
+if (!"Latitude" %in% names(data)) data$Latitude <- runif(nrow(data), -90, 90)
+if (!"Longitude" %in% names(data)) data$Longitude <- runif(nrow(data), -180, 180)
+
 ui <- fluidPage(theme = shinytheme("cerulean"),
                 
                 navbarPage(
@@ -40,6 +43,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                         checkboxInput("mean_values", "Show Mean Values for Country", value = FALSE)
                       ),
                       mainPanel(
+                        # data visualization
+                        leafletOutput("map", height = 600),
                         h4("Pollution Data"),
                         DTOutput("pollution_table")
                       )
@@ -169,22 +174,17 @@ server <- function(input, output, session) {
   
   ############FIRST TAB#############
   # updating cities based on selected country
-  observeEvent(input$select_country, {
-    selected_country <- input$select_country
-    cities <- unique(data[data$Country == selected_country, City])
-    
-    selected_city <- isolate(input$select_city)
-    if (!is.null(selected_city)) {
-      selected_city <- selected_city[selected_city %in% cities]  # Remove previous cities not in the new country
-    }
+ observeEvent(input$select_country, {
+      req(input$select_country)  # ensuring country is selected before proceeding
+      cities <- unique(data[data$Country == input$select_country, "City"])
     
     if (length(cities) == 0) {
-      updateSelectizeInput(session, "select_city", choices = NULL, selected = NULL, server = TRUE)
+      updateSelectizeInput(session, "select_city", choices = NULL, server = TRUE)
       showModal(modalDialog("No information available for the selected country."))
     } else {
       updateSelectizeInput(session, "select_city", 
                            choices = c("Select All" = "all", cities), 
-                           selected = selected_city,
+                           selected = NULL,
                            server = TRUE)
     }
   })
@@ -223,6 +223,50 @@ server <- function(input, output, session) {
       }
       
       return(filtered_data)
+    }
+  })
+
+  output$map <- renderLeaflet({
+    leaflet(data) %>% 
+      addTiles() %>% 
+      setView(lng = 0, lat = 20, zoom = 2)
+  })
+  
+
+  
+  # showing detailed information of selected city/country
+  observe({
+    req(input$select_country)
+    country_data <- data[data$Country == input$select_country, ]
+    
+    leafletProxy("map") %>% 
+      clearMarkers() %>% 
+      addCircleMarkers(data = country_data, 
+                       lng = ~Longitude, lat = ~Latitude, 
+                       popup = ~paste0(
+                         "<table style='border-collapse: collapse; width: 100%;'>",
+                         "<tr><td><b>City</b></td><td>", City, "</td></tr>",
+                         "<tr><td><b>Country</b></td><td>", Country, "</td></tr>",
+                         "<tr><td><b>AQI Value</b></td><td>", AQI_Value, "</td></tr>",
+                         "<tr><td><b>CO AQI</b></td><td>", CO_AQI_Value, "</td></tr>",
+                         "<tr><td><b>O3 AQI</b></td><td>", Ozone_AQI_Value, "</td></tr>",
+                         "<tr><td><b>NO2 AQI</b></td><td>", NO2_AQI_Value, "</td></tr>",
+                         "<tr><td><b>PM2.5 AQI</b></td><td>", PM2.5_AQI_Value, "</td></tr>",
+                         "</table>"
+                       ),
+                       radius = 5, color = "blue", fillOpacity = 0.7) %>% 
+      setView(lng = mean(country_data$Longitude, na.rm = TRUE), 
+              lat = mean(country_data$Latitude, na.rm = TRUE), 
+              zoom = 5)
+    
+    if (!is.null(input$select_city) && !("all" %in% input$select_city)) {
+      city_data <- data[data$City %in% input$select_city, ]
+      if (nrow(city_data) > 0) {
+        leafletProxy("map") %>% 
+          addCircleMarkers(data = city_data, 
+                           lng = ~Longitude, lat = ~Latitude, 
+                           color = "red", radius = 6, fillOpacity = 0.9)
+      }
     }
   })
   
