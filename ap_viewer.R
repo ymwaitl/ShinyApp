@@ -50,14 +50,28 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                   tabPanel(
                     "Histograms",
                     titlePanel("Air Quality Pollutants"),
-                    p("Choose a pollutant and adjust the number of bins to visualize the data."),
+                    p(HTML("Choose a pollutant and adjust the number of bins to visualize the data. Below are the descriptions of the pollutants.")),
+                    hr(),
+                    
+                    # pollutant descriptions
+                    p(HTML("Air pollutant's description with histogram visualizing <br>
+          <ul>
+          <li> <b>NO2(Nitrogen Dioxide:</b> A reddish-brown gas from vehicles and factories. It can harm the lungs and cause smog and acid rain. </li>
+          <li> <b>O3(Ozone)</b>: A molecule made up of three oxygen atoms, formed when pollutants mix with sunlight. It can make breathing harder. </li>
+          <li> <b>Carbon Monoxide(CO)</b>: A colorless, odorless gas from burning fuels. High levels can be deadly; low levels can make tired or sick. </li>
+          <li> <b>PM2.5(Particular Matter)</b>: Tiny particles or droplets in the air from smoke, dust and pollution. They can get into lungs and cause health problems. </li>")),
                     hr(),
                     
                     fluidRow(
                       column(
                         width = 6,
                         radioButtons("pollutant", label = h4("Select Pollutant"),
-                                     choices = c("Overall AQI" = "AQI_Value", "NO2" = "NO2_AQI_Value", "O3" = "Ozone_AQI_Value", "CO" = "CO_AQI_Value", "PM2.5" = "PM2.5_AQI_Value"),
+                                     choices = c(
+                                       "Overall AQI" = "AQI_Value", 
+                                       "NO2" = "NO2_AQI_Value", 
+                                       "O3" = "Ozone_AQI_Value", 
+                                       "CO" = "CO_AQI_Value", 
+                                       "PM2.5" = "PM2.5_AQI_Value"),
                                      selected = "AQI_Value")
                       ),
                       
@@ -235,7 +249,17 @@ server <- function(input, output, session) {
   selected_data_hist <- reactive({
     req(input$select_country_hist)
     selected_country <- input$select_country_hist
-    pollutant_column <- input$pollutant
+    
+    # correcting the map of pollutants to dataset column names
+    pollutant_map <- c(
+      "AQI_Value" = "AQI_Value",
+      "NO2_AQI_Value" = "NO2_AQI_Value",
+      "Ozone_AQI_Value" = "Ozone_AQI_Value",
+      "CO_AQI_Value" = "CO_AQI_Value",
+      "PM2.5_AQI_Value" = "PM2.5_AQI_Value"
+    )
+    
+    pollutant_column <- pollutant_map[input$pollutant]
     
     filtered_data <- data[data$Country == selected_country, ]
     
