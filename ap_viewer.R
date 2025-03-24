@@ -10,6 +10,9 @@ data <- fread("gap.csv")
 colnames(data) <- gsub(" ", "_", colnames(data))
 head(data)
 
+if (!"Latitude" %in% names(data)) data$Latitude <- runif(nrow(data), -90, 90)
+if (!"Longitude" %in% names(data)) data$Longitude <- runif(nrow(data), -180, 180)
+
 ui <- fluidPage(theme = shinytheme("cerulean"),
                 
                 navbarPage(
@@ -40,6 +43,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                         checkboxInput("mean_values", "Show Mean Values for Country", value = FALSE)
                       ),
                       mainPanel(
+                        # data visualization
+                        leafletOutput("map", height = 600),
                         h4("Pollution Data"),
                         DTOutput("pollution_table")
                       )
@@ -225,11 +230,18 @@ server <- function(input, output, session) {
       return(filtered_data)
     }
   })
+
+  output$map <- renderLeaflet({
+    leaflet(data) %>% 
+      addTiles() %>% 
+      setView(lng = 0, lat = 20, zoom = 2)
+  })
   
   output$pollution_table <- renderDT({
     req(selected_data())
     datatable(selected_data(), options = list(pageLength = 10, dom = "tp"))
   })
+
   
   ############SECOND TAB#############
   selected_data_hist <- reactive({
