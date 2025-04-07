@@ -43,8 +43,6 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                         checkboxInput("mean_values", "Show Mean Values for Country", value = FALSE)
                       ),
                       mainPanel(
-                        # data visualization
-                        leafletOutput("map", height = 600),
                         h4("Pollution Data"),
                         DTOutput("pollution_table")
                       )
@@ -175,21 +173,24 @@ server <- function(input, output, session) {
   ############FIRST TAB#############
   # updating cities based on selected country
   observeEvent(input$select_country, {
-      req(input$select_country)  # ensuring country is selected before proceeding
-      cities <- unique(data[data$Country == input$select_country, "City"])
-    
-    selected_city <- isolate(input$select_city)
-    if (!is.null(selected_city)) {
-      selected_city <- selected_city[selected_city %in% cities]  # Remove previous cities not in the new country
-    }
+    req(input$select_country)  # ensuring country is selected before proceeding
+    cities <- unique(data[data$Country == input$select_country, "City"])
     
     if (length(cities) == 0) {
-      updateSelectizeInput(session, "select_city", choices = NULL, selected = NULL, server = TRUE)
+      updateSelectizeInput(session, "select_city", choices = NULL, server = TRUE)
+      
       showModal(modalDialog("No information available for the selected country."))
     } else {
+      # getting the current selected cities
+      current_cities <- input$select_city
+      # filtering to only those cities that exist in the new country
+      valid_cities <- current_cities[current_cities %in% cities]
+      # if no valid cities, set to NULL; otherwise, keep the valid ones
+      selected_cities <- if (length(valid_cities) > 0) valid_cities else NULL
+      
       updateSelectizeInput(session, "select_city", 
                            choices = c("Select All" = "all", cities), 
-                           selected = selected_city,
+                           selected = selected_cities,  # persisting valid cities
                            server = TRUE)
     }
   })
@@ -208,7 +209,6 @@ server <- function(input, output, session) {
     
     if (input$mean_values) {
       
-      # calculating mean values
       mean_data <- data[data$Country == input$select_country, 
                         lapply(.SD, mean, na.rm = TRUE), 
                         .SDcols = grep("Value", names(data), value = TRUE)]
@@ -216,27 +216,22 @@ server <- function(input, output, session) {
       return(mean_data)
     } else {
       
-      # filtering data by selected cities
       cities <- input$select_city
       if (is.null(cities) || "all" %in% cities) {
         cities <- unique(data[data$Country == input$select_country, City])
       }
       filtered_data <- data[data$Country == input$select_country & City %in% cities, ]
       
+      
+      # if no data, returning an empty dataset instead of showing a modal
       if (nrow(filtered_data) == 0) {
-        showModal(modalDialog("No information available for the selected city."))
+        return(data[0, ])  
       }
       
       return(filtered_data)
     }
   })
-  
-  output$map <- renderLeaflet({
-    leaflet(data) %>% 
-      addTiles() %>% 
-      setView(lng = 0, lat = 20, zoom = 2)
-  })
-  
+ 
   output$pollution_table <- renderDT({
     req(selected_data())
     datatable(selected_data(), options = list(pageLength = 10, dom = "tp"))
