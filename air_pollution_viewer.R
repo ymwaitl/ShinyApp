@@ -423,9 +423,12 @@ selected_city <- isolate(input$select_city)
   
   ############THIRD TAB#############
 
+ observeEvent(c(input$select_country, input$select_regression_target, input$select_regression_predictors), {
+    output$regression_summary <- renderPrint({ NULL })
+    output$regression_plot <- renderPlot({ NULL })
+  }, ignoreInit = TRUE)
+  
   observeEvent(input$run_regression, {
-    
-    # making sure the country is selected
     if (input$select_country == "") {
       showNotification("Please select a country.", type = "error")
       return()
