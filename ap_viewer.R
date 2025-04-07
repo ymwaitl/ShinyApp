@@ -282,6 +282,7 @@ server <- function(input, output, session) {
     req(selected_data())
     datatable(selected_data(), options = list(pageLength = 10, dom = "tp"))
   })
+
   
   ############SECOND TAB#############
   selected_data_hist <- reactive({
