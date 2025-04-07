@@ -313,54 +313,21 @@ selected_city <- isolate(input$select_city)
   
   
   ############SECOND TAB#############
+  ##modifications##
   selected_data_hist <- reactive({
     req(input$select_country_hist)
-    
     selected_country <- input$select_country_hist
+    pollutant_column <- input$pollutant
     
     filtered_data <- data[data$Country == selected_country, ]
     
-    # getting selected pollutant
-    if (input$pollutant == "Overall AQI") {
-      if ("AQI_Value" %in% names(filtered_data)) {
-        return(filtered_data$AQI_Value)  # returning overall AQI data
-      } else {
-        return(NULL)
-      }
-    } 
-    
-    if (input$pollutant == "NO2") {
-      if ("NO2_AQI_Value" %in% names(filtered_data)) {
-        return(filtered_data$NO2_AQI_Value)  
-      } else {
-        return(NULL)
-      }
-    } 
-    
-    if (input$pollutant == "O3") {
-      if ("Ozone_AQI_Value" %in% names(filtered_data)) {
-        return(filtered_data$Ozone_AQI_Value)  
-      } else {
-        return(NULL)
-      }
-    } 
-    
-    if (input$pollutant == "CO") {
-      if ("CO_AQI_Value" %in% names(filtered_data)) {
-        return(filtered_data$CO_AQI_Value)  
-      } else {
-        return(NULL)
-      }
-    } 
-    
-    if (input$pollutant == "PM2.5") {
-      if ("PM2.5_AQI_Value" %in% names(filtered_data)) {
-        return(filtered_data$PM2.5_AQI_Value) 
-      } else {
-        return(NULL)
-      }
-    } 
+    if (pollutant_column %in% names(filtered_data)) {
+      return(filtered_data[[pollutant_column]])
+    } else {
+      return(NULL)
+    }
   })
+##
   
   # creating histograms
   output$distPlot <- renderPlot({
