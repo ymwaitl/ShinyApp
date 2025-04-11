@@ -1,11 +1,9 @@
 library(shiny)
 library(shinythemes)
-library(dplyr)
 library(DT)
 library(data.table)
 library(leaflet)
 
-setwd("C:/Users/Админ/Desktop/czu/2024 ZS/IWB for HCD/shiny_app")
 data <- fread("gap.csv")
 
 # cleaning data
